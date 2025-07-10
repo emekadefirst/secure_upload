@@ -26,6 +26,7 @@ This project provides a secure way to upload files to a MinIO-compatible object 
 ├── filemanager.py      # Upload logic with MinIO support
 ├── main.py             # Main secure_upload entry point
 ├── env.py              # Environment variables for MinIO credentials (not included)
+├── database.py              # Database configs
 ```
 
 ---

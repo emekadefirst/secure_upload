@@ -1,4 +1,6 @@
 import os
+import zipfile
+from io import BytesIO
 
 FILE_SIGNATURES = {
     b"\xFF\xD8\xFF": "jpeg",
@@ -9,7 +11,7 @@ FILE_SIGNATURES = {
     b"\x49\x49\x2A\x00": "tiff",
     b"\x4D\x4D\x00\x2A": "tiff",
     b"%PDF": "pdf",
-    b"PK\x03\x04": "zip",  
+    b"PK\x03\x04": "zip",
     b"Rar!\x1A\x07\x00": "rar",
     b"Rar!\x1A\x07\x01\x00": "rar",
     b"\x7FELF": "elf",
@@ -22,14 +24,16 @@ FILE_SIGNATURES = {
 }
 
 EXTENSION_MAP = {
-
     "jpeg": ["jpg", "jpeg"],
     "png": ["png"],
     "gif": ["gif"],
     "bmp": ["bmp"],
     "tiff": ["tif", "tiff"],
     "pdf": ["pdf"],
-    "zip": ["zip", "xlsx", "docx", "pptx"],
+    "docx": ["docx"],
+    "xlsx": ["xlsx"],
+    "pptx": ["pptx"],
+    "zip": ["zip"],
     "rar": ["rar"],
     "elf": ["elf"],
     "exe": ["exe"],
@@ -43,19 +47,34 @@ EXTENSION_MAP = {
 def get_file_signature(file_bytes: bytes) -> str:
     for sig, ftype in FILE_SIGNATURES.items():
         if file_bytes.startswith(sig):
+            if ftype == "zip":
+                try:
+                    zip_file = zipfile.ZipFile(BytesIO(file_bytes))
+                    names = zip_file.namelist()
+
+                    if "[Content_Types].xml" in names:
+                        if any(name.startswith("xl/") for name in names):
+                            return "xlsx"
+                        elif any(name.startswith("word/") for name in names):
+                            return "docx"
+                        elif any(name.startswith("ppt/") for name in names):
+                            return "pptx"
+                    return "zip"
+                except Exception as e:
+                    print("Zip check failed:", e)
+                    return "zip"
             return ftype
     return "unknown"
 
 
 def check_file_type(file) -> str:
-    """
-    Validates file by comparing its extension to its signature.
-    """
     file.file.seek(0)
-    signature_bytes = file.file.read(20)  # first 20 bytes
-    print(f"Signature Bytes: {signature_bytes}")
+    file_bytes = file.file.read() 
     file.file.seek(0)
-    actual_type = get_file_signature(signature_bytes)
+
+    print(f"Signature Bytes: {file_bytes[:20]}")
+
+    actual_type = get_file_signature(file_bytes)
 
     if actual_type == "unknown":
         return "unknown"

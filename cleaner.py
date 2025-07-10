@@ -22,13 +22,14 @@ FILE_SIGNATURES = {
 }
 
 EXTENSION_MAP = {
+
     "jpeg": ["jpg", "jpeg"],
     "png": ["png"],
     "gif": ["gif"],
     "bmp": ["bmp"],
     "tiff": ["tif", "tiff"],
     "pdf": ["pdf"],
-    "zip": ["zip"],
+    "zip": ["zip", "xlsx", "docx", "pptx"],
     "rar": ["rar"],
     "elf": ["elf"],
     "exe": ["exe"],
@@ -52,6 +53,7 @@ def check_file_type(file) -> str:
     """
     file.file.seek(0)
     signature_bytes = file.file.read(20)  # first 20 bytes
+    print(f"Signature Bytes: {signature_bytes}")
     file.file.seek(0)
     actual_type = get_file_signature(signature_bytes)
 
